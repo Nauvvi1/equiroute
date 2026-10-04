@@ -1,0 +1,44 @@
+<%- include('partials/head', { title }) %>
+
+<main class="page">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">BNB Hack · Tokenized Stocks</p>
+      <h1>EquiRoute</h1>
+      <p class="lead">
+        Intelligent execution router for tokenized stocks on BNB Smart Chain.
+      </p>
+    </div>
+
+    <div class="status-card">
+      <h2>API configuration</h2>
+      <p><span class="dot <%= apiStatus.apiKeyConfigured ? 'ok' : '' %>"></span> API key</p>
+      <p><span class="dot <%= apiStatus.secretKeyConfigured ? 'ok' : '' %>"></span> Secret key</p>
+      <p><span class="dot <%= apiStatus.baseUrlConfigured ? 'ok' : '' %>"></span> Base URL</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Prototype</p>
+        <h2>Find the best tokenized-stock route</h2>
+      </div>
+    </div>
+
+    <form class="search-form" id="stock-form">
+      <label for="symbol">Stock symbol</label>
+      <div class="search-row">
+        <input id="symbol" name="symbol" value="NVDA" placeholder="NVDA" autocomplete="off" />
+        <button type="submit">Analyze</button>
+      </div>
+    </form>
+
+    <div class="empty-state" id="result">
+      <strong>MVP shell is ready.</strong>
+      <span>Next step: connect real Binance Web3 RWA/Market data and route simulation.</span>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>
