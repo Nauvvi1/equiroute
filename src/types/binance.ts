@@ -30,8 +30,34 @@ export type RwaToken = {
   statusInfo: MarketStatus;
   tokenPrice: string;
   referencePrice: string;
+  tokenPriceUpdatedAt?: number | null;
   volume24H?: string;
   marketCap?: string;
+};
+
+export type RwaPrice = {
+  binanceChainId: string;
+  tokenContractAddress: string;
+  platformId: string;
+  tokenPrice: string;
+  referencePrice: string;
+  tokenPriceUpdatedAt?: number | null;
+};
+
+export type RwaUnderlyingMarket = {
+  binanceChainId: string;
+  tokenContractAddress: string;
+  platformId: string;
+  assetType: number;
+  statusInfo: MarketStatus;
+  marketData?: {
+    referencePrice?: string;
+    high52W?: string;
+    low52W?: string;
+    volumeShares24H?: string;
+    avgDailyVolume1Y?: string;
+    marketCap?: string;
+  };
 };
 
 export type QuoteToken = {
@@ -83,4 +109,21 @@ export type SimulationResult = {
     preAmount: string;
     postAmount: string;
   }>;
+};
+
+export type WalletTokenAsset = {
+  binanceChainId: string;
+  tokenContractAddress?: string | null;
+  address: string;
+  symbol: string;
+  balance: string;
+  rawBalance?: string;
+  tokenPrice?: string;
+  isRiskToken?: boolean;
+};
+
+export type WalletBalancePage = {
+  page: number;
+  pageSize: number;
+  tokenAssets: WalletTokenAsset[];
 };
