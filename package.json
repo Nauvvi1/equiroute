@@ -1,14 +1,15 @@
 {
   "name": "equiroute",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Intelligent execution router for tokenized stocks on BNB Smart Chain.",
+  "description": "Execution guard for tokenized stocks on BNB Smart Chain.",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/lib/binanceClient.test.ts src/services/executionGuard.test.ts"
   },
   "engines": {
     "node": ">=20"

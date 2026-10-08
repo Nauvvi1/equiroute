@@ -1,44 +1,148 @@
 <%- include('partials/head', { title }) %>
 
+<header class="topbar">
+  <a class="brand" href="/">
+    <span class="brand-mark">E</span>
+    <span>EquiRoute</span>
+  </a>
+  <div class="mode-pill <%= apiStatus.mode === 'live' ? 'live' : 'demo' %>">
+    <span class="pulse"></span>
+    <%= apiStatus.mode === 'live' ? 'Live Binance Web3 API' : 'Demo mode' %>
+  </div>
+</header>
+
 <main class="page">
   <section class="hero">
-    <div>
-      <p class="eyebrow">BNB Hack · Tokenized Stocks</p>
-      <h1>EquiRoute</h1>
-      <p class="lead">
-        Intelligent execution router for tokenized stocks on BNB Smart Chain.
-      </p>
-    </div>
-
-    <div class="status-card">
-      <h2>API configuration</h2>
-      <p><span class="dot <%= apiStatus.apiKeyConfigured ? 'ok' : '' %>"></span> API key</p>
-      <p><span class="dot <%= apiStatus.secretKeyConfigured ? 'ok' : '' %>"></span> Secret key</p>
-      <p><span class="dot <%= apiStatus.baseUrlConfigured ? 'ok' : '' %>"></span> Base URL</p>
+    <p class="eyebrow">BNB Hack · Tokenized Stocks Edition</p>
+    <h1>Know the real cost<br />before you trade.</h1>
+    <p class="hero-copy">
+      EquiRoute is a pre-trade execution guard for tokenized stocks. It compares the displayed token price with a live executable route, market status and your own tolerance — then allows, warns or blocks the trade.
+    </p>
+    <div class="hero-tags">
+      <span>RWA Data</span><span>Trading API</span><span>Transaction simulation</span><span>BSC mainnet</span>
     </div>
   </section>
 
-  <section class="panel">
-    <div class="panel-header">
-      <div>
-        <p class="eyebrow">Prototype</p>
-        <h2>Find the best tokenized-stock route</h2>
+  <section class="workspace">
+    <div class="form-card card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Execution guard</p>
+          <h2>Check a trade</h2>
+        </div>
+        <span class="safe-label">No broadcast</span>
+      </div>
+
+      <form id="guard-form">
+        <div class="field-grid two">
+          <label class="field">
+            <span>Stock ticker</span>
+            <input id="symbol" name="symbol" value="NVDA" maxlength="12" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Spend (USDT)</span>
+            <div class="input-suffix"><input id="amountUsd" name="amountUsd" type="number" min="1" step="1" value="500" /><b>USDT</b></div>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>My maximum execution premium</span>
+          <div class="range-row">
+            <input id="maxPremiumPercent" name="maxPremiumPercent" type="range" min="0.1" max="5" step="0.1" value="1" />
+            <output id="limit-output">1.0%</output>
+          </div>
+          <small>Rule: block the trade if the best verified execution is worse than this limit.</small>
+        </label>
+
+        <label class="field">
+          <span>BSC wallet address <em>needed for live RFQ quotes</em></span>
+          <input id="walletAddress" name="walletAddress" placeholder="0x..." autocomplete="off" spellcheck="false" />
+          <small>EquiRoute never asks for a seed phrase or private key and never broadcasts a transaction.</small>
+        </label>
+
+        <button class="primary" type="submit" id="analyze-button">
+          <span>Run execution check</span>
+          <span class="arrow">→</span>
+        </button>
+      </form>
+    </div>
+
+    <aside class="policy-card card">
+      <p class="eyebrow">Guard policy</p>
+      <h3>Never buy blind.</h3>
+      <div class="policy-rule">
+        <span>IF</span>
+        <strong>all-in premium &gt; <b id="policy-limit">1.0%</b></strong>
+      </div>
+      <div class="policy-rule">
+        <span>THEN</span>
+        <strong>block execution</strong>
+      </div>
+      <p>Market closed? EquiRoute keeps checking the executable quote instead of treating the last reference value as a guaranteed fill price.</p>
+    </aside>
+  </section>
+
+  <section id="result-shell" class="result-shell hidden" aria-live="polite">
+    <div id="decision-card" class="decision-card card"></div>
+
+    <div class="metrics" id="metrics"></div>
+
+    <div class="card routes-card">
+      <div class="section-heading routes-heading">
+        <div>
+          <p class="eyebrow">Route comparison</p>
+          <h2>What you would actually get</h2>
+        </div>
+        <span id="result-mode" class="source-badge"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Representation</th>
+              <th>Token vs ref.</th>
+              <th>Executable premium</th>
+              <th>Impact</th>
+              <th>Market</th>
+              <th>Guard</th>
+            </tr>
+          </thead>
+          <tbody id="routes-body"></tbody>
+        </table>
       </div>
     </div>
 
-    <form class="search-form" id="stock-form">
-      <label for="symbol">Stock symbol</label>
-      <div class="search-row">
-        <input id="symbol" name="symbol" value="NVDA" placeholder="NVDA" autocomplete="off" />
-        <button type="submit">Analyze</button>
+    <div class="bottom-grid">
+      <div class="card explanation-card">
+        <p class="eyebrow">Why this matters</p>
+        <h3 id="loss-title"></h3>
+        <p id="loss-copy"></p>
+        <div id="warnings" class="warnings"></div>
       </div>
-    </form>
+      <div class="card safety-card">
+        <p class="eyebrow">Pre-trade safety</p>
+        <div id="simulation-state" class="simulation-state"></div>
+        <p class="muted">For RWA RFQ routes, EquiRoute can dry-run the required ERC-20 approval through Binance Transaction API. The actual RFQ is not signed or sent.</p>
+      </div>
+    </div>
+  </section>
 
-    <div class="empty-state" id="result">
-      <strong>MVP shell is ready.</strong>
-      <span>Next step: connect real Binance Web3 RWA/Market data and route simulation.</span>
+  <section class="how-it-works">
+    <p class="eyebrow">Under the hood</p>
+    <div class="steps">
+      <div><b>01</b><h3>Find</h3><p>Load BSC tokenized-stock representations and market state.</p></div>
+      <div><b>02</b><h3>Quote</h3><p>Ask for an executable USDT → stock-token route, not just a displayed price.</p></div>
+      <div><b>03</b><h3>Measure</h3><p>Translate the quote back into underlying-share exposure and real premium.</p></div>
+      <div><b>04</b><h3>Guard</h3><p>Allow, warn or block according to the user's explicit execution rule.</p></div>
     </div>
   </section>
 </main>
+
+<footer class="footer">
+  <span>EquiRoute · BNB Smart Chain</span>
+  <span>Built for BNB Hack: Tokenized Stocks Edition</span>
+</footer>
+
+<div id="toast" class="toast hidden"></div>
 
 <%- include('partials/footer') %>
