@@ -2,45 +2,62 @@
 
 ## 1. Установка
 
-В PowerShell из папки проекта:
+PowerShell в папке проекта:
 
 ```powershell
-npm install
+pnpm install
 Copy-Item .env.example .env
-npm run dev
+pnpm dev
 ```
 
-Открыть:
+Открыть `http://localhost:3000`.
 
-```text
-http://localhost:3000
-```
+## 2. Live-режим
 
-Без ключей приложение работает в **Demo mode**.
-
-## 2. Реальные Binance Web3 API
-
-Открой `.env` и укажи НОВЫЙ API key/Secret Key из Developer Portal:
+В `.env`:
 
 ```env
 DEMO_MODE=false
-BINANCE_WEB3_API_KEY=...
-BINANCE_WEB3_SECRET_KEY=...
+BINANCE_WEB3_API_KEY=НОВЫЙ_API_KEY
+BINANCE_WEB3_SECRET_KEY=НОВЫЙ_SECRET_KEY
 ```
 
-Secret Key нельзя коммитить и нельзя вставлять в README/GitHub.
+Secret Key никому не отправлять и в GitHub не коммитить.
 
-После сохранения перезапусти `npm run dev`.
+## 3. Как пользоваться
 
-## 3. Что вводить на сайте
+1. Ticker: например `NVDA`.
+2. Spend: например `500` USDT.
+3. Premium limit: например `1.0%`.
+4. Ввести только публичный BSC-адрес `0x...` или нажать **Connect wallet** — программа запросит только публичный адрес, без подписи.
+5. Оставить включённым **Liquidity stress probe**, если нужно дополнительно проверить тот же маршрут на размере в 5 раз больше.
+6. Нажать **Run execution firewall**.
 
-- `Stock ticker`: например `NVDA`.
-- `Spend`: сколько USDT хотим потратить.
-- `Maximum execution premium`: максимально допустимое ухудшение реального исполнения относительно Binance RWA reference.
-- `BSC wallet address`: обычный публичный `0x...` адрес. Приватный ключ не нужен.
+Смотреть прежде всего:
 
-## 4. Что делает кнопка
+- `Displayed gap` — как цена токена выглядит относительно reference price с учётом `tokenToShareRatio`.
+- `Executable premium` — фактическая переплата по live quote.
+- `Hidden gap` — насколько реальное исполнение хуже/лучше того, что кажется по отображаемой цене.
+- `Route advantage` — сколько reference-equivalent value сохраняет лучший маршрут относительно альтернативы.
+- `Wallet preflight` — хватает ли USDT и есть ли BNB на gas.
+- `Transaction dry-run` — прошёл ли dry-run approval.
+- `API trace` — какие Binance API реально вызвались и сколько заняли.
+- `5× size stress probe` — как меняется executable premium, если размер заявки увеличить в 5 раз; это помогает увидеть чувствительность к ликвидности.
 
-Приложение получает реальные RWA-представления на BSC, запрашивает исполнимый RFQ quote, пересчитывает получаемые токены в эквивалент базовой акции и показывает ALLOW / CAUTION / BLOCK.
+`BLOCK` — не исполнять. `CAUTION` — цена проходит правило, но есть дополнительный фактор (например закрытый underlying market). `ALLOW` — live quote проходит правило и wallet readiness в порядке, но реальное исполнение всё равно требует отдельного подтверждения пользователя.
 
-Для live RFQ оно также строит `approve` и прогоняет его через Transaction API simulation. Ничего не подписывается и не отправляется в сеть.
+## 4. Agentic Wallet (не обязательно для обычного запуска)
+
+Проверка нашего policy skill без сделки:
+
+```powershell
+node skills/equiroute-guard/scripts/cli.mjs analyze '{"symbol":"NVDA","amountUsd":100,"maxPremiumPercent":1,"walletAddress":"0x..."}'
+```
+
+Если официальный Binance Agentic Wallet CLI `baw` у тебя реально настроен, можно доказать read-only handoff:
+
+```powershell
+node skills/equiroute-guard/scripts/cli.mjs agentic-quote '{"symbol":"NVDA","amountUsd":100,"maxPremiumPercent":1,"walletAddress":"0x..."}'
+```
+
+Эта команда **не делает swap**: при `BLOCK` она вообще останавливается, иначе только получает второй quote через официальный Agentic Wallet CLI.

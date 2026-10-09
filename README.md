@@ -1,142 +1,195 @@
 # EquiRoute
 
-**Execution Guard for Tokenized Stocks on BNB Smart Chain**
+> **A pre-trade execution firewall for tokenized stocks on BNB Smart Chain.**
 
-EquiRoute answers a simple question **before** a user trades a tokenized stock:
+A tokenized stock can look almost perfectly aligned with its underlying reference price while the **quote a user can actually execute** is materially worse. EquiRoute checks that hidden gap before a human or AI agent trades.
 
-> “If I spend $500 on NVDA exposure right now, what will I actually receive — and is the real execution worse than my limit?”
+**Example:** the UI can show an Ondo NVDA token only `+0.17%` above reference while the live executable route is `+1.32%`. With a user's `1.00%` policy, EquiRoute returns **BLOCK**.
 
-Tokenized equities can keep trading while the underlying market is closed. A displayed token price is not the same thing as an executable fill: routing, RFQ pricing, price impact, network cost and thin liquidity can make the actual exposure materially worse.
+## Why it exists
 
-EquiRoute turns that into a user-defined safety rule:
+Tokenized equities trade on-chain outside traditional market hours, across multiple representations and fragmented liquidity. A displayed token price is not an executable fill. Users can encounter:
 
-> **Never execute when the best verified all-in premium is more than 1% above the Binance RWA reference exposure.**
+- token/reference divergence;
+- RFQ / route-specific execution premium;
+- slippage and price impact;
+- closed/paused underlying market states;
+- insufficient wallet funding or gas;
+- AI agents that would otherwise execute from a headline price without an independent policy gate.
 
-The current MVP **does not sign or broadcast trades**. It is intentionally a pre-trade guard.
+EquiRoute turns those into a simple rule:
 
-## What it does
+> **Never execute if the best verified live route exceeds my maximum premium.**
 
-1. Loads BSC tokenized-stock representations from the **Binance Web3 RWA Data API**.
-2. Reads token price, Binance RWA reference price, token-to-share ratio and traditional-market status.
-3. Requests an executable **USDT → tokenized stock** route from the **Trading API**.
-4. Converts the quote output back into equivalent underlying-share exposure.
-5. Computes an all-in execution premium and estimated avoidable cost in USD.
-6. Applies the user's limit and returns **ALLOW / CAUTION / BLOCK**.
-7. Builds the required ERC-20 approval for the chosen RFQ vendor and dry-runs it with the **Transaction API**.
-8. Never asks for a seed phrase/private key and never broadcasts a transaction.
+## What makes this different
 
-## Why this is different from a price monitor
+This is not another price monitor or "pick the cheapest provider" dashboard.
 
-A price monitor says “the token is $X”. EquiRoute asks “for my actual order size, how much stock exposure would this executable route deliver?”.
+EquiRoute measures **three layers** for the same trade:
 
-That distinction becomes important during off-hours and when liquidity is fragmented across tokenized representations.
+1. **Underlying reference** — Binance Web3 RWA reference value and market state.
+2. **Displayed token gap** — token price vs the ratio-adjusted underlying reference (`referencePrice × tokenToShareRatio`).
+3. **Executable reality** — what the wallet-specific Trading API quote actually delivers in equivalent underlying-share exposure.
 
-## Stack
+The difference between (2) and (3) is the **hidden execution gap**. That is the user pain EquiRoute makes visible and enforceable.
 
-- Node.js 20+
-- TypeScript
-- Express
-- EJS
-- Browser JavaScript / CSS
-- Binance Web3 RWA Data API
-- Binance Web3 Trading API
-- Binance Web3 Transaction API
-- BNB Smart Chain mainnet
+## Live pipeline
+
+```text
+Ticker + amount + user policy + public BSC wallet
+                    │
+                    ▼
+RWA Data API ── token/reference price + market status
+                    │
+                    ▼
+Wallet API ─── USDT funding
+BSC RPC ───── native BNB gas readiness
+                    │
+                    ▼
+Trading API ── wallet-specific executable RFQ/route
+                    │
+                    ▼
+Transaction API ── approval dry-run (no broadcast)
+                    │
+                    ▼
+EquiRoute Policy Engine
+          ALLOW / CAUTION / BLOCK
+                    │
+                    ▼
+Wallet Skill → Agentic Wallet (explicit confirmation only)
+```
+
+## Binance Web3 modules used
+
+- **RWA Data API** — token list, refreshed token/reference prices, underlying market status.
+- **Trading API** — live USDT → tokenized-stock executable routes and approval calldata.
+- **Transaction API** — dry-run the required ERC-20 approval before any real funds move.
+- **Wallet API** — check the public BSC wallet's USDT funding. Native BNB gas balance is verified separately with BSC `eth_getBalance`, because BNB is the chain's native asset rather than a BEP-20 token.
+- **Agentic Wallet / Wallet Skills** — included `equiroute-guard` skill acts as a policy firewall before delegated execution and can prove the handoff with a read-only official `baw market-order quote`.
+
+An optional **5× liquidity stress probe** re-quotes the same representations at a larger order size, exposing execution deterioration that a single headline quote can hide. It is quote-only and never broadcasts.
+
+The app also records a **request-scoped API trace** (module, operation, latency, success/failure) so judges can see the integration actually running and the Developer Experience Report can use measured data rather than vague claims.
+
+## Policy semantics
+
+- No executable quote → **BLOCK**.
+- Halted/paused status → **BLOCK**.
+- Executable premium above user threshold → **BLOCK**.
+- Wallet has insufficient USDT or no BNB for gas → **BLOCK**.
+- Price policy passes but the underlying market is closed → **CAUTION**.
+- Price policy passes, market is open, wallet is ready and preparation simulation is healthy → **ALLOW**.
+- If the approval simulation is unavailable, a clean ALLOW is downgraded to **CAUTION** rather than pretending execution readiness is proven.
+- `ALLOW` is still **not permission to auto-trade**. Agentic execution requires explicit user confirmation.
 
 ## Run locally
 
+Node.js 20+.
+
 ```bash
 npm install
-cp .env.example .env
 npm run dev
 ```
 
-PowerShell:
-
-```powershell
-npm install
-Copy-Item .env.example .env
-npm run dev
-```
+The app starts in demo mode when live Binance Web3 credentials are not configured. To use live mode, copy `.env.example` to `.env` and add fresh credentials.
 
 Open `http://localhost:3000`.
 
 ### pnpm
 
-If you use pnpm:
-
 ```powershell
 pnpm install
-Copy-Item .env.example .env
 pnpm dev
 ```
 
-## Demo mode
+## Demo vs live mode
 
-With no API credentials, `DEMO_MODE=auto` starts the app with clearly labelled illustrative data. This is useful for UI development.
+With no credentials, `DEMO_MODE=auto` shows clearly labelled illustrative data.
 
-For live mode, add fresh credentials from the Binance Web3 Developer Portal:
+For live mode:
 
 ```env
 DEMO_MODE=false
-BINANCE_WEB3_API_KEY=your_api_key
-BINANCE_WEB3_SECRET_KEY=your_secret_key
+BINANCE_WEB3_API_KEY=your_fresh_api_key
+BINANCE_WEB3_SECRET_KEY=your_fresh_secret_key
 ```
 
-Do **not** commit `.env`.
+Never commit `.env`.
 
-For live RWA/RFQ quotes, enter a public BSC wallet address in the UI. A public address is used as the RFQ receiver/sender context; EquiRoute never needs the wallet's secret.
+For live RFQ analysis, enter only a **public BSC wallet address (`0x...`)** or use the browser `Connect wallet` button, which only reads the public address. EquiRoute does not request or store a seed phrase/private key and cannot sign a transaction.
+
+## Wallet Skill / Agentic Wallet integration
+
+The repo contains:
+
+```text
+skills/equiroute-guard/
+├── SKILL.md
+└── scripts/cli.mjs
+```
+
+The skill makes EquiRoute a policy gate in front of the official Binance Agentic Wallet Skill. It never bypasses `BLOCK`, re-checks before execution, uses the exact contract address returned by EquiRoute, and requires explicit confirmation before the wallet acts.
+
+Test the policy layer against a running EquiRoute instance:
+
+```bash
+node skills/equiroute-guard/scripts/cli.mjs analyze '{"symbol":"NVDA","amountUsd":100,"maxPremiumPercent":1,"walletAddress":"0xYOUR_PUBLIC_BSC_ADDRESS","deepScan":true}'
+```
+
+If the official Binance Agentic Wallet CLI (`baw`) is connected, prove the handoff without trading:
+
+```bash
+node skills/equiroute-guard/scripts/cli.mjs agentic-quote '{"symbol":"NVDA","amountUsd":100,"maxPremiumPercent":1,"walletAddress":"0xYOUR_PUBLIC_BSC_ADDRESS"}'
+```
+
+`agentic-quote` stops on `BLOCK`, otherwise asks the official Agentic Wallet for a second **read-only** quote on the exact token contract selected by EquiRoute. It never sends a swap.
+
+Actual Agentic Wallet execution requires the user's own eligible Binance/MPC/Agentic Wallet setup. This repository does **not** fake that step when it is unavailable.
 
 ## API authentication
 
-The implementation follows the current Binance Web3 API signing format:
+Requests follow the Binance Web3 signed format:
 
 ```text
 preHash = timestamp + METHOD + /build/request/path?query + rawBody
 signature = Base64(HMAC-SHA256(preHash, secretKey))
 ```
 
-Required request headers are generated server-side. Secrets are never exposed to browser JavaScript.
+Secrets stay server-side. The client retries once on transient rate-limit/service errors with a freshly signed request.
 
-## Safety behavior
+## Safety / security details
 
-EquiRoute fails closed:
+- Fail-closed for unverifiable execution quality.
+- Browser output escapes API-provided token/provider strings before rendering.
+- No private wallet credentials.
+- No signing or broadcasting from the web app.
+- No investment-return claim or PnL promise.
+- RFQ/EIP-712 execution is not misrepresented as a normal swap simulation.
 
-- no executable quote → **BLOCK**;
-- execution premium exceeds the user's threshold → **BLOCK**;
-- route is inside the threshold but the traditional market is closed → **CAUTION**;
-- verified route is inside the threshold while the market is open → **ALLOW**.
-
-The Binance RWA `referencePrice` is presented as **Binance's RWA API reference value**, not as an official exchange order-book quote.
-
-## RFQ / simulation detail
-
-Binance Web3 documentation states that equity/RWA routes use `RFQ` execution. These routes require EIP-712 signing for the actual order. This MVP therefore does not pretend to simulate or broadcast the RFQ itself.
-
-Instead, when a live RFQ quote is available, EquiRoute:
-
-1. asks the Trading API for the vendor-specific ERC-20 approval calldata;
-2. constructs the approval transaction locally;
-3. sends it to the Transaction API `/pre-transaction/simulate` endpoint;
-4. displays the predicted result;
-5. does **not** broadcast anything.
-
-This is also a useful DX finding for the hackathon report.
-
-## Scripts
+## Tests
 
 ```bash
-npm run dev
 npm run typecheck
 npm test
 npm run build
-npm start
 ```
 
-## Project status
+## Judge quick path
 
-This archive is a working MVP for the **execution-guard** direction. The next high-value addition is Agentic Wallet / Wallet Skills: store the user's rule (for example, max 1% execution premium) and let an agent refuse execution automatically when the rule fails.
+1. Start the app in live mode.
+2. Enter `NVDA`, `500`, a `1.0%` threshold and a funded public BSC address.
+3. Compare `Displayed gap` vs `Executable premium` vs `Hidden gap`.
+4. Inspect route-specific `ALLOW/CAUTION/BLOCK`.
+5. Inspect wallet preflight, Transaction API approval dry-run and live API trace.
+6. Enable the 5× liquidity stress probe and show whether route quality deteriorates with size.
+7. Copy the Agentic handoff or run the included Wallet Skill CLI; if `baw` is configured, use `agentic-quote` to prove the official read-only handoff.
+
+See `docs/ARCHITECTURE.md`, `docs/JUDGE_CHECKLIST.md`, `docs/DEMO_SCRIPT.md`, `docs/DEPLOY.md` and `docs/SUBMISSION.md`.
 
 ## Disclaimer
 
-EquiRoute is a hackathon prototype for execution-quality analysis. It does not provide investment advice and does not promise a trading outcome or profit.
+Hackathon prototype for execution-quality analysis and policy enforcement. It does not provide investment advice, guarantee a fill, or promise profit.
+
+### Market-status normalization
+
+Live RWA providers are not perfectly uniform. EquiRoute normalizes Binance RWA market state defensively: if `marketStatus` is omitted but `openState`/reason fields are present (for example bStocks returning `openState=true` with `TRADING`), the UI reports the session as `regular` instead of incorrectly showing `unknown`. The per-token `underlying-market` endpoint remains the preferred source, with the token-list status as fallback.

@@ -33,6 +33,16 @@ function escapeHtml(value) {
 }
 function money(value) { return Number.isFinite(Number(value)) ? `$${Number(value).toFixed(2)}` : '—'; }
 function pct(value, digits = 2) { const n = Number(value); return Number.isFinite(n) ? `${n >= 0 ? '+' : ''}${n.toFixed(digits)}%` : '—'; }
+
+function arrowIcon() {
+  return '<svg class="inline-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h10"></path><path d="M10 4l6 6-6 6"></path></svg>';
+}
+
+function statusIcon(type = 'ok') {
+  if (type === 'bad') return '<span class="status-inline bad"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"></circle><path d="M7 7l6 6M13 7l-6 6"></path></svg></span>';
+  if (type === 'warn') return '<span class="status-inline warn"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"></circle><path d="M10 5.8v5.2"></path><path d="M10 14h.01"></path></svg></span>';
+  return '<span class="status-inline ok"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"></circle><path d="M6.3 10.3l2.4 2.5 5-5.4"></path></svg></span>';
+}
 function verdictClass(value) { return String(value || '').toLowerCase(); }
 function routeBadge(candidate) { const c = verdictClass(candidate.routeVerdict); return `<span class="badge ${c === 'allow' ? 'good' : c === 'caution' ? 'warn' : 'bad'}" title="${escapeHtml(candidate.routeReason)}">${escapeHtml(candidate.routeVerdict)}</span>`; }
 function formatTime(ts) { if (!ts) return ''; try { return new Date(Number(ts)).toLocaleString(); } catch { return ''; } }
@@ -51,12 +61,12 @@ function renderWallet(wallet, amountUsd) {
     walletState.innerHTML = `<strong class="warn-text">Readiness unavailable</strong><span>${escapeHtml(wallet?.error || 'Wallet API check did not complete.')}</span>`;
     return;
   }
-  const funding = wallet.hasEnoughUsdt ? '✓' : '✕';
-  const gas = wallet.hasGas ? '✓' : '✕';
+  const funding = wallet.hasEnoughUsdt ? statusIcon('ok') : statusIcon('bad');
+  const gas = wallet.hasGas ? statusIcon('ok') : statusIcon('bad');
   const gasDetail = wallet.estimatedNetworkFeeUsd != null
     ? ` Estimated network fee ${money(wallet.estimatedNetworkFeeUsd)}; safety buffer ${money(wallet.gasSafetyBufferUsd)}.`
     : '';
-  walletState.innerHTML = `<strong>${funding} ${money(wallet.usdtBalance)} USDT · ${gas} ${Number(wallet.bnbBalance || 0).toFixed(5)} BNB</strong><span>${wallet.hasEnoughUsdt ? `Enough USDT for ${money(amountUsd)}.` : `Not enough USDT for ${money(amountUsd)}.`} ${wallet.hasGas ? 'BNB gas reserve passes.' : 'BNB gas reserve is not sufficient/verified.'}${gasDetail}</span>`;
+  walletState.innerHTML = `<strong>${funding}<span>${money(wallet.usdtBalance)} USDT</span> · ${gas}<span>${Number(wallet.bnbBalance || 0).toFixed(5)} BNB</span></strong><span>${wallet.hasEnoughUsdt ? `Enough USDT for ${money(amountUsd)}.` : `Not enough USDT for ${money(amountUsd)}.`} ${wallet.hasGas ? 'BNB gas reserve passes.' : 'BNB gas reserve is not sufficient/verified.'}${gasDetail}</span>`;
 }
 
 
@@ -69,7 +79,7 @@ function renderStress(stress) {
     if (!route.quoteAvailable) return `<div class="stress-item"><div><strong>${escapeHtml(route.providerName)} · ${escapeHtml(route.tokenSymbol)}</strong><span>Stress quote unavailable</span></div><b class="warn-text">—</b><small>${escapeHtml(route.error || 'No quote')}</small></div>`;
     const delta = Number(route.deteriorationPercent);
     const cls = delta > 0.5 ? 'danger-text' : delta > 0.15 ? 'warn-text' : 'good-text';
-    return `<div class="stress-item"><div><strong>${escapeHtml(route.providerName)} · ${escapeHtml(route.tokenSymbol)}</strong><span>${pct(route.basePremiumPercent)} → ${pct(route.stressedPremiumPercent)}</span></div><b class="${cls}">${pct(delta)}</b><small>Δ premium · impact ${pct(route.stressedPriceImpactPercent)}</small></div>`;
+    return `<div class="stress-item"><div><strong>${escapeHtml(route.providerName)} · ${escapeHtml(route.tokenSymbol)}</strong><span>${pct(route.basePremiumPercent)} <span class="stress-arrow">${arrowIcon()}</span> ${pct(route.stressedPremiumPercent)}</span></div><b class="${cls}">${pct(delta)}</b><small>Δ premium · impact ${pct(route.stressedPriceImpactPercent)}</small></div>`;
   }).join('');
 }
 
@@ -119,7 +129,7 @@ function render(data) {
   const simulation = best?.approveSimulation;
   if (simulation?.attempted) {
     const ok = simulation.status === 'SUCCESS';
-    simulationState.innerHTML = `<strong class="${ok ? 'good-text' : 'warn-text'}">${ok ? '✓ Approval dry-run passed' : `Approval dry-run: ${escapeHtml(simulation.status || 'unknown')}`}</strong><span>${escapeHtml(simulation.failReason || 'Binance Transaction API simulated the ERC-20 approval without broadcasting it.')}</span>`;
+    simulationState.innerHTML = `<strong class="${ok ? 'good-text' : 'warn-text'}">${ok ? `${statusIcon('ok')}<span>Approval dry-run passed</span>` : `${statusIcon('warn')}<span>Approval dry-run: ${escapeHtml(simulation.status || 'unknown')}</span>`}</strong><span>${escapeHtml(simulation.failReason || 'Binance Transaction API simulated the ERC-20 approval without broadcasting it.')}</span>`;
   } else {
     simulationState.innerHTML = `<strong>Approval simulation unavailable</strong><span>${data.mode === 'demo' ? 'Demo mode shows the intended flow.' : 'The price firewall still reports quote quality; inspect the API trace for the failed module.'}</span>`;
   }

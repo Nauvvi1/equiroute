@@ -1,22 +1,40 @@
-# 3-minute demo outline
+# Demo video script (≤ 4 minutes)
 
-1. **Problem (20 sec)**
-   “Tokenized stocks trade when the underlying market can be closed. The price you see is not necessarily the execution you get.”
+## 0:00–0:25 — Problem
 
-2. **Rule (20 sec)**
-   Set: `Never execute if all-in premium > 1%`.
+“Tokenized stocks can look close to the underlying reference price while the route a user can actually execute is materially worse. EquiRoute is a pre-trade firewall that measures that hidden gap before a human or AI agent trades.”
 
-3. **Analyze NVDA (45 sec)**
-   Enter `$500`, show representations returned by Binance Web3, token/reference gap, executable RFQ premium and market status.
+## 0:25–1:20 — Live NVDA check
 
-4. **Guard decision (30 sec)**
-   Show ALLOW/CAUTION/BLOCK and the estimated dollar cost that the rule protects against.
+- Show `LIVE BINANCE WEB3`.
+- Enter NVDA, 500 USDT, 1.0%, public BSC wallet.
+- Run the firewall.
+- Point at two representations.
+- Emphasize a case where the displayed gap is small but executable premium breaches the policy.
+- Say: “The user would think this route is near reference, but EquiRoute blocks it from the executable quote.”
 
-5. **Transaction safety (30 sec)**
-   Show that EquiRoute builds the vendor-specific USDT approval and dry-runs it through Transaction API without broadcasting.
+## 1:20–1:55 — Wallet + transaction safety
 
-6. **Architecture (25 sec)**
-   RWA Data → Trading quote → exposure normalization → policy → Transaction simulation.
+Show Wallet preflight: public address, USDT readiness, BNB gas readiness.
+Show Transaction dry-run. Explain no seed phrase/private key is used and the web app never broadcasts.
 
-7. **Next step / Agentic Wallet (10 sec)**
-   Store the user policy in the execution layer and let the agent refuse trades that violate it.
+## 1:55–2:35 — Hidden gap + liquidity stress
+
+Show `Hidden execution gap` and `Route advantage` in dollars. Then enable/show the **5× size stress probe** and explain whether the same route degrades at a larger order size. This connects the product directly to fragmented liquidity and slippage instead of only a static price gap.
+
+## 2:35–3:10 — Technical proof
+
+Scroll to the API trace. Name the modules visible in one request:
+RWA Data → Wallet → Trading → Transaction.
+Mention request signing, rate-limit retry, underlying-market fallback and fail-closed behavior.
+
+## 3:10–3:40 — Agentic Wallet / Wallet Skill
+
+Show `skills/equiroute-guard/SKILL.md` and run `analyze`. If your Agentic Wallet CLI is actually configured, run `agentic-quote` too: it proves EquiRoute selects/gates the exact contract and the official `baw` layer independently quotes it, without trading.
+Explain: “This policy layer sits in front of Agentic Wallet. BLOCK can never be bypassed by the agent; CAUTION/ALLOW still require explicit user confirmation, and the exact contract address from EquiRoute is handed off.”
+
+Do not claim a real Agentic Wallet trade if it was not actually tested on your account.
+
+## 3:40–3:58 — Close
+
+“EquiRoute turns an invisible execution-quality problem into a rule that humans and agents can enforce before money moves.”
