@@ -12,7 +12,7 @@ indexRouter.get('/', (_req, res) => {
     links: {
       github: env.githubUrl,
       docs: `${env.githubUrl}/tree/main/docs`,
-      demo: env.demoUrl
+      demo: `https://youtu.be/W4FK4UdFw_k`
     }
   });
 });
