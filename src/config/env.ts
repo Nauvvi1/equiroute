@@ -17,7 +17,9 @@ export const env = {
   bscChainId: value('BSC_CHAIN_ID', '56'),
   bscRpcUrl: value('BSC_RPC_URL', 'https://bsc-dataseed.bnbchain.org'),
   bscUsdtAddress: value('BSC_USDT_ADDRESS', '0x55d398326f99059fF775485246999027B3197955'),
-  bscUsdtDecimals: Number(value('BSC_USDT_DECIMALS', '18'))
+  bscUsdtDecimals: Number(value('BSC_USDT_DECIMALS', '18')),
+  githubUrl: value('GITHUB_URL', 'https://github.com/Nauvvi1/equiroute'),
+  demoUrl: value('DEMO_URL', 'https://www.youtube.com/')
 };
 
 export function credentialsConfigured(): boolean {

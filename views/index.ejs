@@ -1,77 +1,177 @@
 <%- include('partials/head', { title }) %>
 
-<header class="topbar">
-  <a class="brand" href="/"><span class="brand-mark">E</span><span>EquiRoute</span></a>
-  <div class="header-badges">
-    <span class="mini-pill">4 API modules</span>
-    <span class="mini-pill ai">Wallet Skill</span>
-    <div class="mode-pill <%= apiStatus.mode === 'live' ? 'live' : 'demo' %>"><span class="pulse"></span><%= apiStatus.mode === 'live' ? 'Live Binance Web3' : 'Demo mode' %></div>
+<header class="site-header">
+  <div class="nav-shell">
+    <a class="brand" href="/" aria-label="EquiRoute home">
+      <img src="/images/equiroute-mark.webp" alt="" />
+      <span>EquiRoute</span>
+    </a>
+    <nav class="main-nav" aria-label="Primary navigation">
+      <a href="#how-it-works">How it works</a>
+      <a href="#features">Features</a>
+      <a href="<%= links.demo %>" target="_blank" rel="noreferrer">Demo</a>
+      <a href="<%= links.docs %>" target="_blank" rel="noreferrer">Docs</a>
+    </nav>
+    <a class="nav-cta" href="#checker">Try EquiRoute <span>→</span></a>
   </div>
 </header>
 
-<main class="page">
-  <section class="hero">
-    <p class="eyebrow">BNB Hack · Tokenized Stocks Edition</p>
-    <h1>A pre-trade firewall<br />for tokenized stocks.</h1>
-    <p class="hero-copy">A token can look only 0.2% away from the stock reference — while the quote you can actually execute is 1%+ worse. EquiRoute checks the real route, wallet readiness and market state before an agent or human trades.</p>
-    <div class="hero-tags"><span>RWA Data</span><span>Trading API</span><span>Transaction API</span><span>Wallet API</span><span>Agentic Wallet-ready</span></div>
+<main>
+  <section class="landing-hero section-shell">
+    <div class="hero-copy-wrap">
+      <div class="hackathon-pill"><span></span>Built for BNB Hack</div>
+      <h1>Same stock.<br />Different routes.<br /><em>Real execution<br class="desktop-break" /> costs.</em></h1>
+      <p>EquiRoute checks live executable quotes for tokenized stocks on BNB Smart Chain, compares real execution costs, and blocks bad trades before they happen.</p>
+      <div class="hero-actions">
+        <a class="button button-dark" href="#checker">Try EquiRoute <span>→</span></a>
+        <a class="button button-light" href="<%= links.github %>" target="_blank" rel="noreferrer">
+          <img src="/images/github.webp" alt="" /> View on GitHub
+        </a>
+      </div>
+    </div>
+    <div class="hero-preview-wrap" aria-label="EquiRoute execution comparison preview">
+      <img class="hero-preview" src="/images/hero-preview.webp" alt="EquiRoute comparing bStocks and Ondo NVDA execution routes" />
+    </div>
   </section>
 
-  <section class="workspace">
-    <div class="form-card card">
-      <div class="section-heading"><div><p class="eyebrow">Execution firewall</p><h2>Check a trade</h2></div><span class="safe-label">No broadcast</span></div>
-      <form id="guard-form">
-        <div class="field-grid two">
-          <label class="field"><span>Stock ticker</span><input id="symbol" name="symbol" value="NVDA" maxlength="12" autocomplete="off" /></label>
-          <label class="field"><span>Spend (USDT)</span><div class="input-suffix"><input id="amountUsd" name="amountUsd" type="number" min="1" step="1" value="500" /><b>USDT</b></div></label>
+  <section id="features" class="feature-strip section-shell">
+    <article class="feature-item">
+      <img src="/images/feature-live-rfq.webp" alt="" />
+      <div><h3>Live RFQ quotes</h3><p>Real executable prices<br />from Binance Web3</p></div>
+    </article>
+    <article class="feature-item">
+      <img src="/images/feature-compare.webp" alt="" />
+      <div><h3>Compare routes</h3><p>See actual execution<br />premiums and hidden gaps</p></div>
+    </article>
+    <article class="feature-item">
+      <img src="/images/feature-wallet.webp" alt="" />
+      <div><h3>Wallet preflight</h3><p>Check USDT funding<br />and BNB for gas</p></div>
+    </article>
+    <article class="feature-item">
+      <img src="/images/feature-block.webp" alt="" />
+      <div><h3>Blocks bad trades</h3><p>Never execute blind</p></div>
+    </article>
+  </section>
+
+  <section id="how-it-works" class="content-section section-shell">
+    <p class="section-kicker">How it works</p>
+    <h2>A simple 4-step check.</h2>
+    <div class="steps-grid">
+      <article class="step-card"><span>1</span><h3>Enter ticker and amount</h3><p>Set stock ticker, spend in USDT and your maximum acceptable premium.</p></article>
+      <div class="step-arrow">→</div>
+      <article class="step-card"><span>2</span><h3>Get live executable quotes</h3><p>EquiRoute checks available tokenized representations on BSC and fetches real executable quotes.</p></article>
+      <div class="step-arrow">→</div>
+      <article class="step-card"><span>3</span><h3>Compare and analyze</h3><p>See actual execution costs, hidden gaps and a 5× size liquidity stress test.</p></article>
+      <div class="step-arrow">→</div>
+      <article class="step-card"><span>4</span><h3>Get a clear result</h3><p>ALLOW or BLOCK is based on your policy. Execution still requires explicit confirmation.</p></article>
+    </div>
+  </section>
+
+  <section class="examples-section section-shell">
+    <p class="section-kicker">Examples</p>
+    <h2>Try different tickers.</h2>
+    <div class="ticker-grid">
+      <article class="ticker-card">
+        <div class="ticker-head"><img src="/images/stock-nvda.webp" alt="Nvidia" /><div><strong>NVDA</strong><span>Nvidia Corp</span></div></div>
+        <span class="market-chip">Regular</span>
+        <div class="ticker-stats"><div><span>Best premium</span><b class="positive">+0.03%</b></div><div><span>Alt route</span><b class="negative">+1.98%</b></div></div>
+        <button class="ticker-button" type="button" data-ticker="NVDA">Try NVDA</button>
+      </article>
+      <article class="ticker-card">
+        <div class="ticker-head"><img src="/images/stock-aapl.webp" alt="Apple" /><div><strong>AAPL</strong><span>Apple Inc</span></div></div>
+        <span class="market-chip">Regular</span>
+        <div class="ticker-stats"><div><span>Best premium</span><b class="positive">+0.26%</b></div><div><span>Stress</span><b class="positive">Stable</b></div></div>
+        <button class="ticker-button" type="button" data-ticker="AAPL">Try AAPL</button>
+      </article>
+      <article class="ticker-card">
+        <div class="ticker-head"><img src="/images/stock-tsla.webp" alt="Tesla" /><div><strong>TSLA</strong><span>Tesla Inc</span></div></div>
+        <span class="market-chip">Regular</span>
+        <div class="ticker-stats"><div><span>Best premium</span><b class="positive">~0.00%</b></div><div><span>Alt route</span><b class="negative">Low liquidity</b></div></div>
+        <button class="ticker-button" type="button" data-ticker="TSLA">Try TSLA</button>
+      </article>
+    </div>
+  </section>
+
+  <section class="cta-section section-shell">
+    <div class="cta-icon"><img src="/images/feature-wallet.webp" alt="" /></div>
+    <div><h2>Never execute blind.</h2><p>EquiRoute is an execution firewall for tokenized stocks on BSC. It checks live quotes, compares routes and helps you avoid bad trades.</p></div>
+    <a class="button button-dark" href="#checker">Try EquiRoute <span>→</span></a>
+  </section>
+
+  <section id="checker" class="checker-section">
+    <div class="section-shell">
+      <div class="checker-heading">
+        <div><p class="section-kicker">Live execution firewall</p><h2>Check a real trade.</h2><p>Use the full EquiRoute flow below. Nothing is signed or broadcast.</p></div>
+        <div class="mode-pill <%= apiStatus.mode === 'live' ? 'live' : 'demo' %>"><span></span><%= apiStatus.mode === 'live' ? 'Live Binance Web3' : 'Demo mode' %></div>
+      </div>
+
+      <div class="workspace">
+        <div class="form-card card">
+          <div class="section-heading"><div><p class="mini-kicker">Execution firewall</p><h3>Check a trade</h3></div><span class="safe-label">No broadcast</span></div>
+          <form id="guard-form">
+            <div class="field-grid three-fields">
+              <label class="field"><span>Stock ticker</span><input id="symbol" name="symbol" value="NVDA" maxlength="12" autocomplete="off" /></label>
+              <label class="field"><span>Spend (USDT)</span><div class="input-suffix"><input id="amountUsd" name="amountUsd" type="number" min="1" step="1" value="500" /><b>USDT</b></div></label>
+              <label class="field"><span>Maximum acceptable premium</span><div class="range-row compact-range"><input id="maxPremiumPercent" name="maxPremiumPercent" type="range" min="0.1" max="5" step="0.1" value="1" /><output id="limit-output">1.0%</output></div></label>
+            </div>
+            <label class="field wallet-field"><span>Your public BSC wallet address</span><div class="wallet-input-row"><input id="walletAddress" name="walletAddress" placeholder="0x..." autocomplete="off" spellcheck="false" /><button class="secondary compact" type="button" id="connect-wallet">Connect wallet</button></div><small>Used only for a wallet-specific live RFQ quote, USDT funding check and native BNB gas verification. EquiRoute cannot sign or move funds.</small></label>
+            <label class="deep-scan"><input id="deepScan" type="checkbox" checked /><span><strong>Liquidity stress probe</strong><small>Re-quote the same representation at 5× order size to reveal size-sensitive execution deterioration.</small></span></label>
+            <button class="primary" type="submit" id="analyze-button"><span>Run execution firewall</span><span class="arrow">→</span></button>
+          </form>
         </div>
-        <label class="field"><span>Maximum acceptable execution premium</span><div class="range-row"><input id="maxPremiumPercent" name="maxPremiumPercent" type="range" min="0.1" max="5" step="0.1" value="1" /><output id="limit-output">1.0%</output></div><small>If every verified route is worse than this threshold, the firewall returns BLOCK.</small></label>
-        <label class="field"><span>Your public BSC wallet address</span><div class="wallet-input-row"><input id="walletAddress" name="walletAddress" placeholder="0x..." autocomplete="off" spellcheck="false" /><button class="secondary compact" type="button" id="connect-wallet">Connect wallet</button></div><small>Used only to request a wallet-specific live RFQ quote, check USDT funding and verify native BNB for gas. EquiRoute cannot sign, move funds or access your wallet.</small></label>
-        <label class="deep-scan"><input id="deepScan" type="checkbox" checked /><span><strong>Liquidity stress probe</strong><small>Also re-quote the same representations at 5× order size to expose size-sensitive execution deterioration. Quote-only; never broadcast.</small></span></label>
-        <button class="primary" type="submit" id="analyze-button"><span>Run execution firewall</span><span class="arrow">→</span></button>
-      </form>
-    </div>
 
-    <aside class="policy-card card">
-      <p class="eyebrow">Agent policy</p><h3>Never execute blind.</h3>
-      <div class="policy-rule"><span>01</span><strong>live quote required</strong></div>
-      <div class="policy-rule"><span>02</span><strong>premium ≤ <b id="policy-limit">1.0%</b></strong></div>
-      <div class="policy-rule"><span>03</span><strong>wallet funded + gas ready</strong></div>
-      <div class="policy-rule"><span>04</span><strong>BLOCK is a hard stop</strong></div>
-      <p>The included Wallet Skill can place this policy in front of Binance Agentic Wallet: re-check immediately before execution, never bypass BLOCK, and still require explicit user confirmation.</p>
-    </aside>
+        <aside class="policy-card card">
+          <p class="mini-kicker">Agent policy</p><h3>Never execute blind.</h3>
+          <div class="policy-rule"><span>01</span><strong>live quote required</strong></div>
+          <div class="policy-rule"><span>02</span><strong>premium ≤ <b id="policy-limit">1.0%</b></strong></div>
+          <div class="policy-rule"><span>03</span><strong>wallet funded + gas ready</strong></div>
+          <div class="policy-rule"><span>04</span><strong>BLOCK is a hard stop</strong></div>
+          <p>The included Wallet Skill can place this policy in front of Binance Agentic Wallet. ALLOW still requires explicit user confirmation.</p>
+        </aside>
+      </div>
+
+      <section id="result-shell" class="result-shell hidden" aria-live="polite">
+        <div id="decision-card" class="decision-card card"></div>
+        <div class="metrics" id="metrics"></div>
+
+        <div class="card routes-card">
+          <div class="section-heading routes-heading"><div><p class="mini-kicker">Route comparison</p><h3>Displayed price vs executable reality</h3></div><span id="result-mode" class="source-badge"></span></div>
+          <div class="table-wrap"><table><thead><tr><th>Representation</th><th>Displayed gap</th><th>Executable premium</th><th>Hidden gap</th><th>Impact</th><th>Market</th><th>Guard</th></tr></thead><tbody id="routes-body"></tbody></table></div>
+        </div>
+
+        <div id="stress-card" class="card stress-card hidden">
+          <div class="section-heading"><div><p class="mini-kicker">Liquidity depth</p><h3 id="stress-title">5× size stress probe</h3></div><span class="safe-label">quote-only</span></div>
+          <p class="muted" id="stress-copy"></p><div id="stress-grid" class="stress-grid"></div>
+        </div>
+
+        <div class="bottom-grid three">
+          <div class="card explanation-card"><p class="mini-kicker">Money saved</p><h3 id="loss-title"></h3><p id="loss-copy"></p><div id="warnings" class="warnings"></div></div>
+          <div class="card safety-card"><p class="mini-kicker">Wallet preflight</p><div id="wallet-state" class="simulation-state"></div><p class="muted">Binance Wallet API checks USDT; BSC RPC verifies native BNB for gas.</p></div>
+          <div class="card safety-card"><p class="mini-kicker">Transaction dry-run</p><div id="simulation-state" class="simulation-state"></div><p class="muted">The ERC-20 approval is simulated without broadcasting a transaction.</p></div>
+        </div>
+
+        <details class="detail-card card">
+          <summary><span>Technical proof</span><strong>Live API trace</strong></summary>
+          <div id="api-trace" class="api-trace"></div><p class="muted">Latency and success state are collected per analysis without exposing API keys, wallet parameters or signed payloads.</p>
+        </details>
+
+        <details class="detail-card card">
+          <summary><span>AI execution layer</span><strong>Agentic handoff</strong></summary>
+          <p id="agent-status" class="muted"></p><pre id="agent-instruction"></pre><button type="button" class="secondary" id="copy-agent">Copy agent instruction</button>
+        </details>
+      </section>
+    </div>
   </section>
-
-  <section id="result-shell" class="result-shell hidden" aria-live="polite">
-    <div id="decision-card" class="decision-card card"></div>
-    <div class="metrics" id="metrics"></div>
-
-    <div class="card routes-card">
-      <div class="section-heading routes-heading"><div><p class="eyebrow">Route comparison</p><h2>Displayed price vs executable reality</h2></div><span id="result-mode" class="source-badge"></span></div>
-      <div class="table-wrap"><table><thead><tr><th>Representation</th><th>Displayed gap</th><th>Executable premium</th><th>Hidden gap</th><th>Impact</th><th>Market</th><th>Guard</th></tr></thead><tbody id="routes-body"></tbody></table></div>
-    </div>
-
-    <div id="stress-card" class="card stress-card hidden">
-      <div class="section-heading"><div><p class="eyebrow">Liquidity depth</p><h3 id="stress-title">5× size stress probe</h3></div><span class="safe-label">quote-only</span></div>
-      <p class="muted" id="stress-copy"></p>
-      <div id="stress-grid" class="stress-grid"></div>
-    </div>
-
-    <div class="bottom-grid three">
-      <div class="card explanation-card"><p class="eyebrow">Money saved</p><h3 id="loss-title"></h3><p id="loss-copy"></p><div id="warnings" class="warnings"></div></div>
-      <div class="card safety-card"><p class="eyebrow">Wallet preflight</p><div id="wallet-state" class="simulation-state"></div><p class="muted">Binance Wallet API checks USDT funding; BSC eth_getBalance verifies native BNB for gas. No signing permission is requested.</p></div>
-      <div class="card safety-card"><p class="eyebrow">Transaction dry-run</p><div id="simulation-state" class="simulation-state"></div><p class="muted">RFQ execution can require EIP-712. EquiRoute dry-runs the required ERC-20 approval and leaves the actual trade to explicit user confirmation.</p></div>
-    </div>
-
-    <div class="bottom-grid">
-      <div class="card trace-card"><div class="section-heading"><div><p class="eyebrow">Technical proof</p><h3>Live API trace</h3></div><span class="safe-label">request-scoped</span></div><div id="api-trace" class="api-trace"></div><p class="muted">Latency and success state are collected per analysis without exposing API keys, wallet query parameters or signed payloads.</p></div>
-      <div class="card agent-card"><p class="eyebrow">AI execution layer</p><h3>Agentic handoff</h3><p id="agent-status" class="muted"></p><pre id="agent-instruction"></pre><button type="button" class="secondary" id="copy-agent">Copy agent instruction</button></div>
-    </div>
-  </section>
-
-  <section class="how-it-works"><p class="eyebrow">Under the hood</p><div class="steps"><div><b>01</b><h3>Resolve + refresh</h3><p>Find bStocks/Ondo representations, refresh prices and hydrate underlying market state.</p></div><div><b>02</b><h3>Preflight wallet</h3><p>Check USDT and BNB readiness for the public wallet through Wallet API.</p></div><div><b>03</b><h3>Quote + simulate</h3><p>Ask for a live executable RFQ route, optionally stress it at 5× size, and dry-run its approval transaction.</p></div><div><b>04</b><h3>Enforce policy</h3><p>Expose the hidden execution gap and return ALLOW, CAUTION or BLOCK before any agent acts.</p></div></div></section>
 </main>
 
-<footer class="footer"><span>EquiRoute · BNB Smart Chain</span><span>Built for BNB Hack: Tokenized Stocks Edition</span></footer>
+<footer class="site-footer">
+  <div class="section-shell footer-grid">
+    <div class="footer-brand"><a class="brand inverse" href="/"><img src="/images/equiroute-mark.webp" alt="" /><span>EquiRoute</span></a><p>Execution firewall for tokenized stocks<br />on BNB Smart Chain.</p><a class="footer-github" href="<%= links.github %>" target="_blank" rel="noreferrer"><img src="/images/github.webp" alt="GitHub" /></a></div>
+    <div><h4>Product</h4><a href="#how-it-works">How it works</a><a href="#features">Features</a><a href="<%= links.demo %>" target="_blank" rel="noreferrer">Demo</a><a href="<%= links.docs %>" target="_blank" rel="noreferrer">Docs</a></div>
+    <div><h4>Resources</h4><a href="<%= links.github %>" target="_blank" rel="noreferrer">GitHub</a><a href="<%= links.github %>/blob/main/docs/DX_NOTES.md" target="_blank" rel="noreferrer">Developer Report</a><a href="<%= links.github %>" target="_blank" rel="noreferrer">BNB Hackathon</a></div>
+    <div class="footer-note"><p>Not financial advice.</p><p>Quote-only. No broadcast.</p><p>EquiRoute © 2026</p></div>
+  </div>
+</footer>
+
 <div id="toast" class="toast hidden"></div>
 <%- include('partials/footer') %>

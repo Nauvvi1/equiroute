@@ -1,16 +1,24 @@
 import { Router } from 'express';
-import { apiStatus } from '../config/env.js';
+import { apiStatus, env } from '../config/env.js';
 import { runWithTelemetry } from '../lib/telemetry.js';
 import { executionGuardService } from '../services/executionGuard.js';
 
 export const indexRouter = Router();
 
 indexRouter.get('/', (_req, res) => {
-  res.render('index', { title: 'EquiRoute — Execution Firewall', apiStatus: apiStatus() });
+  res.render('index', {
+    title: 'EquiRoute — Execution Firewall',
+    apiStatus: apiStatus(),
+    links: {
+      github: env.githubUrl,
+      docs: `${env.githubUrl}/tree/main/docs`,
+      demo: env.demoUrl
+    }
+  });
 });
 
 indexRouter.get('/api/health', (_req, res) => {
-  res.json({ ok: true, service: 'equiroute', version: '1.1.0', ...apiStatus(), time: new Date().toISOString() });
+  res.json({ ok: true, service: 'equiroute', version: '1.2.0', ...apiStatus(), time: new Date().toISOString() });
 });
 
 indexRouter.post('/api/analyze', async (req, res) => {

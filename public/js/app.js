@@ -173,3 +173,13 @@ form.addEventListener('submit', async (event) => {
   } catch (error) { showToast(error.message || 'Could not run execution check'); }
   finally { button.disabled = false; button.querySelector('span:first-child').textContent = 'Run execution firewall'; }
 });
+
+// Landing-page examples: preload the ticker and move straight to the live checker.
+document.querySelectorAll('[data-ticker]').forEach((control) => {
+  control.addEventListener('click', () => {
+    const symbolInput = document.querySelector('#symbol');
+    if (symbolInput) symbolInput.value = String(control.dataset.ticker || '').toUpperCase();
+    document.querySelector('#checker')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => symbolInput?.focus(), 450);
+  });
+});
